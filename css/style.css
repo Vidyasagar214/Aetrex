@@ -42,13 +42,12 @@ body {
 
 /* Sidebar */
 .sidebar-brand {
-  padding: 18px 16px 14px;
-  border-bottom: 1px solid var(--cp-sidebar-divider);
+  padding: 18px 12px 14px;
 }
 
 .sidebar-brand img {
-  height: 80px;
-  width: auto;
+  height: auto;
+  width: 100%;
   display: block;
 }
 
@@ -338,7 +337,6 @@ body {
 
 #scanner-table_wrapper .dt-layout-row:first-child .dt-layout-end {
   justify-content: flex-end;
-  width: 100%;
 }
 
 #scanner-table_wrapper .dt-length {
