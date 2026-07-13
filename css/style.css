@@ -42,7 +42,7 @@ body {
 
 /* Sidebar */
 .sidebar-brand {
-  padding: 18px 12px 14px;
+  padding: 0px 12px 0px;
 }
 
 .sidebar-brand img {
@@ -51,15 +51,6 @@ body {
   display: block;
 }
 
-.sidebar-brand .control-panel-title {
-  margin-top: 10px;
-  text-align: center;
-  font-size: 16px;
-  font-weight: var(--cp-fw-bold);
-  color: #ffffff;
-  letter-spacing: 0;
-  line-height: 1.2;
-}
 
 .sidebar-nav {
   padding: 12px 0;
