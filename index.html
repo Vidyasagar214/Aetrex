@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aetrex Scanner Fleet Management Dashboard</title>
+
+  <!-- Fonts: Control Panel uses Segoe UI on Windows (no web font needed) -->
+
+  <!-- Tailwind CSS -->
+  <script src="assets/vendors/tailwind/tailwindcss.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sidebar: '#354f5e',
+            'sidebar-active': '#d9534f',
+            'sidebar-nav': '#5a7382',
+            'page-bg': '#f0f2f5',
+            'header-bg': '#ced4da',
+            'card-border': '#dee2e6',
+            'text-primary': '#333333',
+            'text-secondary': '#666666',
+            'chart-teal': '#7bc9d7',
+            'chart-blue': '#1a9dd4',
+            accent: '#337ab7',
+            success: '#5cb85c',
+            warning: '#f0ad4e',
+            danger: '#d9534f',
+          },
+          fontFamily: {
+            sans: ['Segoe UI', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+          },
+          fontWeight: {
+            normal: '400',
+            medium: '500',
+            semibold: '600',
+            bold: '700',
+          },
+          boxShadow: {
+            card: '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="assets/vendors/font-awesome/css/all.min.css">
+
+  <!-- DataTables -->
+  <link rel="stylesheet" href="assets/vendors/datatables/css/dataTables.dataTables.min.css">
+  <link rel="stylesheet" href="assets/vendors/datatables/css/responsive.dataTables.min.css">
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="font-sans font-normal bg-page-bg text-text-primary min-h-screen">
+
+  <!-- Mobile sidebar overlay -->
+  <div id="sidebar-overlay" class="sidebar-overlay hidden fixed inset-0 bg-black/40 z-30 lg:hidden" aria-hidden="true"></div>
+
+  <div class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside id="sidebar"
+      class="fixed lg:static inset-y-0 left-0 z-40 w-[220px] bg-sidebar text-white flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out shrink-0">
+
+      <div class="sidebar-brand">
+        <img src="assets/aetrex-logo.png"  alt="Aetrex" >
+        <p class="control-panel-title">Control Panel</p>
+      </div>
+
+      <nav class="sidebar-nav flex-1">
+        <a href="#" class="sidebar-link active">
+          <i class="fa-solid fa-gauge-high"></i>
+          <span>Dashboard</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col min-w-0">
+
+      <!-- Header bar -->
+      <header class="page-header-bar flex items-center justify-between gap-4 sticky top-0 z-20">
+        <div class="flex items-center gap-3 min-w-0">
+          <button id="sidebar-toggle" type="button"
+            class="lg:hidden w-8 h-8 flex items-center justify-center rounded border border-card-border text-text-secondary hover:bg-white/50 transition-colors shrink-0 bg-white/30"
+            aria-label="Toggle sidebar">
+            <i class="fa-solid fa-bars text-sm"></i>
+          </button>
+          <h1 class="truncate">Scanner Fleet Management Dashboard</h1>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <span id="current-date" class="page-header-meta hidden sm:inline"></span>
+          <div class="header-avatar" aria-label="User avatar">JS</div>
+        </div>
+      </header>
+
+      <!-- Page body -->
+      <main class="flex-1 p-5 lg:p-6 space-y-5">
+
+        <!-- KPI cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div class="cp-card p-5 flex items-start justify-between">
+            <div>
+              <p class="kpi-label mb-1.5">Total Fleet</p>
+              <p class="kpi-value">4,238</p>
+            </div>
+            <div class="kpi-icon kpi-icon-neutral">
+              <i class="fa-solid fa-warehouse"></i>
+            </div>
+          </div>
+
+          <div class="cp-card p-5 flex items-start justify-between">
+            <div>
+              <p class="kpi-label mb-1.5">Active Today</p>
+              <p class="kpi-value">3,986</p>
+            </div>
+            <div class="kpi-icon kpi-icon-success">
+              <i class="fa-solid fa-signal"></i>
+            </div>
+          </div>
+
+          <div class="cp-card p-5 flex items-start justify-between">
+            <div>
+              <p class="kpi-label mb-1.5">Latest Version</p>
+              <p class="kpi-value">82%</p>
+            </div>
+            <div class="kpi-icon kpi-icon-info">
+              <i class="fa-solid fa-arrow-up-from-bracket"></i>
+            </div>
+          </div>
+
+          <div class="cp-card p-5 flex items-start justify-between">
+            <div>
+              <p class="kpi-label mb-1.5">Pending Upgrade</p>
+              <p class="kpi-value">315</p>
+            </div>
+            <div class="kpi-icon kpi-icon-warning">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+          </div>
+        </section>
+
+        <!-- Chart row 1 -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="cp-card chart-card p-5 sm:p-6">
+            <h2 class="cp-card-title mb-1">Scanner Software Version Distribution</h2>
+            <p class="cp-card-subtitle">Current software versions across the deployed scanner fleet.</p>
+            <div class="chart-container">
+              <canvas id="versionChart"></canvas>
+            </div>
+          </div>
+
+          <div class="cp-card chart-card p-5 sm:p-6">
+            <h2 class="cp-card-title mb-1">Scanner Fleet by Model</h2>
+            <p class="cp-card-subtitle">Distribution of deployed scanner models.</p>
+            <div class="chart-container">
+              <canvas id="modelChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- Chart row 2 -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="cp-card chart-card p-5 sm:p-6">
+            <h2 class="cp-card-title mb-1">Latest Release Adoption</h2>
+            <p class="cp-card-subtitle">Percentage of scanners upgraded to the latest software version.</p>
+            <div class="chart-container">
+              <canvas id="adoptionChart"></canvas>
+            </div>
+          </div>
+
+          <div class="cp-card chart-card p-5 sm:p-6">
+            <h2 class="cp-card-title mb-1">Scanner Activity Status</h2>
+            <p class="cp-card-subtitle">Operational status of the deployed scanner fleet.</p>
+            <div class="chart-container">
+              <canvas id="activityChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- Device table -->
+        <section class="cp-card p-5 sm:p-6">
+          <h2 class="section-title mb-1">Scanner Fleet Inventory</h2>
+          <p class="section-subtitle mb-5">Search, filter and monitor deployed scanners.</p>
+
+          <div class="overflow-x-auto">
+            <table id="scanner-table" class="w-full display responsive nowrap">
+              <thead>
+                <tr>
+                  <th>Scanner ID</th>
+                  <th>Retailer</th>
+                  <th>Model</th>
+                  <th>Software Version</th>
+                  <th>Last Scan</th>
+                  <th>Last Connected</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-retailer="DSG" data-model="Albert Pro" data-status="Online">
+                  <td>ALB-10234</td>
+                  <td>DSG</td>
+                  <td>Albert Pro</td>
+                  <td>v4.5</td>
+                  <td>Today</td>
+                  <td>2 min ago</td>
+                  <td><span class="status-badge status-online">Online</span></td>
+                </tr>
+                <tr data-retailer="Skechers" data-model="Zoe Pro" data-status="Upgrade Pending">
+                  <td>ZOE-8821</td>
+                  <td>Skechers</td>
+                  <td>Zoe Pro</td>
+                  <td>v4.4</td>
+                  <td>Yesterday</td>
+                  <td>1 day ago</td>
+                  <td><span class="status-badge status-pending">Upgrade Pending</span></td>
+                </tr>
+                <tr data-retailer="Nordstrom" data-model="Pressure Scanner" data-status="Offline">
+                  <td>APS-4492</td>
+                  <td>Nordstrom</td>
+                  <td>Pressure Scanner</td>
+                  <td>v4.2</td>
+                  <td>25 days ago</td>
+                  <td>26 days ago</td>
+                  <td><span class="status-badge status-offline">Offline</span></td>
+                </tr>
+                <tr data-retailer="Foot Locker" data-model="Albert Pro" data-status="Online">
+                  <td>ALB-8844</td>
+                  <td>Foot Locker</td>
+                  <td>Albert Pro</td>
+                  <td>v4.5</td>
+                  <td>Today</td>
+                  <td>15 min ago</td>
+                  <td><span class="status-badge status-online">Online</span></td>
+                </tr>
+                <tr data-retailer="Fleet Feet" data-model="Albert 3DFit" data-status="Online">
+                  <td>FIT-2201</td>
+                  <td>Fleet Feet</td>
+                  <td>Albert 3DFit</td>
+                  <td>v4.5</td>
+                  <td>Today</td>
+                  <td>5 min ago</td>
+                  <td><span class="status-badge status-online">Online</span></td>
+                </tr>
+                <tr data-retailer="Academy Sports" data-model="Zoe Pro" data-status="Inactive">
+                  <td>ZOE-1120</td>
+                  <td>Academy Sports</td>
+                  <td>Zoe Pro</td>
+                  <td>v4.3</td>
+                  <td>10 days ago</td>
+                  <td>11 days ago</td>
+                  <td><span class="status-badge status-inactive">Inactive</span></td>
+                </tr>
+                <tr data-retailer="REI" data-model="Pressure Scanner" data-status="Online">
+                  <td>APS-7008</td>
+                  <td>REI</td>
+                  <td>Pressure Scanner</td>
+                  <td>v4.5</td>
+                  <td>Yesterday</td>
+                  <td>Yesterday</td>
+                  <td><span class="status-badge status-online">Online</span></td>
+                </tr>
+                <tr data-retailer="Dick's Sporting Goods" data-model="Albert Pro" data-status="Upgrade Pending">
+                  <td>ALB-4510</td>
+                  <td>Dick's Sporting Goods</td>
+                  <td>Albert Pro</td>
+                  <td>v4.4</td>
+                  <td>3 days ago</td>
+                  <td>3 days ago</td>
+                  <td><span class="status-badge status-pending">Upgrade Pending</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Vendor scripts -->
+  <script src="assets/vendors/jquery/jquery-3.7.1.min.js"></script>
+  <script src="assets/vendors/datatables/js/dataTables.min.js"></script>
+  <script src="assets/vendors/datatables/js/dataTables.responsive.min.js"></script>
+  <script src="assets/vendors/chartjs/chart.umd.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
