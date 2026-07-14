@@ -47,9 +47,9 @@
     return BUBBLE_COLORS.red;
   }
 
-  /** Pixel radius grows with scanner volume */
-  function getBubbleRadius(scanners) {
-    return Math.max(5, Math.min(18, 4 + Math.sqrt(Math.max(scanners, 0)) * 0.8));
+  /** All metro bubbles share one fixed size (aligned with the smaller green dots) */
+  function getBubbleRadius() {
+    return 6;
   }
 
   /** Availability % = Online / Scanners * 100 */
