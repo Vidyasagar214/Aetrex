@@ -49,7 +49,7 @@
 
   /** Pixel radius grows with scanner volume */
   function getBubbleRadius(scanners) {
-    return Math.max(7, Math.min(28, 5 + Math.sqrt(Math.max(scanners, 0)) * 1.15));
+    return Math.max(5, Math.min(18, 4 + Math.sqrt(Math.max(scanners, 0)) * 0.8));
   }
 
   /** Availability % = Online / Scanners * 100 */

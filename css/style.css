@@ -732,8 +732,8 @@ body {
 }
 
 .legend-swatch {
-  width: 8px;
-  height: 8px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
 }
