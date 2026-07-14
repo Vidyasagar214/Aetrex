@@ -2,16 +2,42 @@ document.addEventListener('DOMContentLoaded', () => {
   initHeader();
   initSidebar();
   initCharts();
-  initDataTable();
+  initAdoptionChart();
+  initDevicesTable();
+  initFleetMaps();
 });
 
-/* Header — current date */
+async function initFleetMaps() {
+  if (!window.AetrexMap) return;
+
+  if (document.getElementById('fleet-map-canvas')) {
+    await window.AetrexMap.initOverviewMap();
+  }
+
+  if (document.getElementById('explorer-map')) {
+    await window.AetrexMap.initLocationExplorer();
+  }
+}
+
+/* Header — data-as-of timestamp */
 function initHeader() {
-  const dateEl = document.getElementById('current-date');
+  const dateEl = document.getElementById('data-as-of');
   if (!dateEl) return;
 
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  dateEl.textContent = new Date().toLocaleDateString('en-US', options);
+  const now = new Date();
+  const datePart = now.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  const timePart = now.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'UTC',
+  });
+
+  dateEl.textContent = `Data as of ${datePart} · ${timePart} UTC`;
 }
 
 /* Sidebar — mobile toggle */
@@ -40,6 +66,11 @@ function initSidebar() {
 
   overlay.addEventListener('click', close);
 
+  // Roadmap preview links are not navigable yet
+  document.querySelectorAll('.sidebar-link-roadmap').forEach((link) => {
+    link.addEventListener('click', (e) => e.preventDefault());
+  });
+
   window.addEventListener('resize', () => {
     if (window.innerWidth >= 1024) {
       close();
@@ -50,8 +81,12 @@ function initSidebar() {
   });
 }
 
-/* Charts — Control Panel color palette */
+/* Charts — Control Panel color palette (Fleet Overview) */
 function initCharts() {
+  const versionCanvas = document.getElementById('versionChart');
+  const modelCanvas = document.getElementById('modelChart');
+  if (!versionCanvas || !modelCanvas || typeof Chart === 'undefined') return;
+
   const colors = {
     teal: '#7bc9d7',
     blue: '#1a9dd4',
@@ -87,13 +122,19 @@ function initCharts() {
     cornerRadius: 4,
   };
 
-  new Chart(document.getElementById('versionChart'), {
+  new Chart(versionCanvas, {
     type: 'bar',
     data: {
       labels: ['v4.5', 'v4.4', 'v4.3', 'v4.2', 'Older'],
       datasets: [{
-        data: [3400, 380, 160, 90, 35],
-        backgroundColor: colors.teal,
+        data: [3475, 380, 160, 98, 125],
+        backgroundColor: [
+          colors.teal,
+          colors.blue,
+          colors.green,
+          colors.orange,
+          colors.danger,
+        ],
         borderRadius: 2,
         borderSkipped: false,
         barPercentage: 0.65,
@@ -105,12 +146,16 @@ function initCharts() {
       plugins: { legend: { display: false }, tooltip },
       scales: {
         x: { ...baseScale, grid: { display: false } },
-        y: { ...baseScale, beginAtZero: true, ticks: { ...baseScale.ticks, maxTicksLimit: 5 } },
+        y: {
+          ...baseScale,
+          beginAtZero: true,
+          ticks: { ...baseScale.ticks, maxTicksLimit: 5 },
+        },
       },
     },
   });
 
-  new Chart(document.getElementById('modelChart'), {
+  new Chart(modelCanvas, {
     type: 'doughnut',
     data: {
       labels: ['Albert Pro', 'Albert 3DFit', 'Albert Pressure Scanner', 'Zoe Pro'],
@@ -125,14 +170,15 @@ function initCharts() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: '58%',
+      cutout: '62%',
       plugins: {
         legend: {
           position: 'bottom',
           labels: {
-            padding: 16,
+            padding: 14,
             usePointStyle: true,
             pointStyle: 'circle',
+            boxWidth: 8,
             font: { size: 11, family: "'Segoe UI', sans-serif", weight: '400' },
             color: '#333333',
           },
@@ -144,105 +190,128 @@ function initCharts() {
       },
     },
   });
+}
 
-  const adoptionCtx = document.getElementById('adoptionChart').getContext('2d');
-  const gradient = adoptionCtx.createLinearGradient(0, 0, 0, 260);
+/* Releases & Upgrades — latest release adoption line chart */
+function initAdoptionChart() {
+  const canvas = document.getElementById('adoptionChart');
+  if (!canvas || typeof Chart === 'undefined') return;
+
+  const colors = {
+    blue: '#1a9dd4',
+    danger: '#d9534f',
+    grid: '#eeeeee',
+    tick: '#888888',
+    tooltip: '#333333',
+  };
+
+  const labels = ['May 18', 'May 25', 'Jun 1', 'Jun 8', 'Jun 15', 'Jun 22', 'Jun 29', 'Jul 6', 'Jul 13'];
+  const adoptionData = [8, 18, 29, 41, 52, 61, 70, 77, 82];
+  const targetData = labels.map(() => 90);
+
+  const ctx = canvas.getContext('2d');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 280);
   gradient.addColorStop(0, 'rgba(26, 157, 212, 0.15)');
   gradient.addColorStop(1, 'rgba(26, 157, 212, 0.01)');
 
-  new Chart(adoptionCtx, {
+  new Chart(canvas, {
     type: 'line',
     data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-      datasets: [{
-        data: [38, 51, 63, 71, 77, 82],
-        borderColor: colors.blue,
-        backgroundColor: gradient,
-        borderWidth: 2,
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: colors.blue,
-        pointBorderColor: '#FFFFFF',
-        pointBorderWidth: 2,
-        pointRadius: 3,
-        pointHoverRadius: 5,
-      }],
+      labels,
+      datasets: [
+        {
+          label: 'Adoption %',
+          data: adoptionData,
+          borderColor: colors.blue,
+          backgroundColor: gradient,
+          borderWidth: 2,
+          fill: true,
+          tension: 0.35,
+          pointBackgroundColor: colors.blue,
+          pointBorderColor: '#FFFFFF',
+          pointBorderWidth: 2,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          order: 1,
+        },
+        {
+          label: 'Target %',
+          data: targetData,
+          borderColor: colors.danger,
+          borderWidth: 1.5,
+          borderDash: [6, 4],
+          fill: false,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          order: 0,
+        },
+      ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            usePointStyle: true,
+            pointStyle: 'line',
+            padding: 16,
+            font: { size: 11, family: "'Segoe UI', sans-serif", weight: '400' },
+            color: '#333333',
+          },
+        },
         tooltip: {
           backgroundColor: colors.tooltip,
-          callbacks: { label: (ctx) => ` ${ctx.parsed.y}%` },
+          callbacks: {
+            label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y}%`,
+          },
         },
       },
-      scales: {
-        x: { ...baseScale, grid: { display: false } },
-        y: {
-          ...baseScale,
-          beginAtZero: false,
-          min: 30,
-          max: 90,
-          ticks: { ...baseScale.ticks, callback: (v) => `${v}%`, stepSize: 15 },
-        },
-      },
-    },
-  });
-
-  new Chart(document.getElementById('activityChart'), {
-    type: 'bar',
-    data: {
-      labels: ['Active (Last 7 Days)', 'Inactive (8–30 Days)', 'Offline (>30 Days)'],
-      datasets: [{
-        data: [3850, 290, 98],
-        backgroundColor: [colors.teal, colors.gray, colors.danger],
-        borderRadius: 2,
-        borderSkipped: false,
-        barPercentage: 0.55,
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip },
       scales: {
         x: {
-          ...baseScale,
-          grid: { display: false },
-          ticks: { ...baseScale.ticks, maxRotation: 0, autoSkip: false, font: { size: 10 } },
+          grid: { display: false, drawBorder: false },
+          ticks: {
+            color: colors.tick,
+            font: { size: 11, family: "'Segoe UI', sans-serif", weight: '400' },
+          },
+          border: { display: false },
         },
-        y: { ...baseScale, beginAtZero: true, ticks: { ...baseScale.ticks, maxTicksLimit: 5 } },
+        y: {
+          min: 0,
+          max: 100,
+          grid: { color: colors.grid, drawBorder: false },
+          ticks: {
+            color: colors.tick,
+            stepSize: 25,
+            callback: (v) => `${v}%`,
+            font: { size: 11, family: "'Segoe UI', sans-serif", weight: '400' },
+          },
+          border: { display: false },
+        },
       },
     },
   });
 }
 
-/* DataTable */
-const columnFilters = { retailer: '', model: '', status: '' };
+/* Devices page — DataTable + filter bar */
+const deviceFilters = {
+  search: '',
+  country: '',
+  model: '',
+  version: '',
+  status: '',
+};
 
-const FILTER_CONFIG = [
-  { key: 'retailer', label: 'Retailer', dataAttr: 'retailer' },
-  { key: 'model', label: 'Model', dataAttr: 'model' },
-  { key: 'status', label: 'Status', dataAttr: 'status' },
+const DEVICE_FILTER_KEYS = [
+  { key: 'country', selectId: 'filter-country', dataAttr: 'country' },
+  { key: 'model', selectId: 'filter-model', dataAttr: 'model' },
+  { key: 'version', selectId: 'filter-version', dataAttr: 'version' },
+  { key: 'status', selectId: 'filter-status', dataAttr: 'status' },
 ];
 
-let scannerTable = null;
-
-DataTable.ext.search.push((settings, _searchData, dataIndex) => {
-  if (settings.nTable.id !== 'scanner-table') return true;
-
-  const row = settings.aoData?.[dataIndex]?.nTr;
-  if (!row) return true;
-
-  return FILTER_CONFIG.every(({ key, dataAttr }) => {
-    const value = columnFilters[key];
-    return !value || row.dataset[dataAttr] === value;
-  });
-});
-
-function getFilterOptions(dataAttr) {
+function getDeviceFilterOptions(dataAttr) {
   const rows = document.querySelectorAll('#scanner-table tbody tr');
   const values = new Set();
   rows.forEach((row) => {
@@ -252,134 +321,128 @@ function getFilterOptions(dataAttr) {
   return [...values].sort((a, b) => a.localeCompare(b));
 }
 
-function buildColumnFiltersToolbar() {
-  const toolbar = document.createElement('div');
-  toolbar.className = 'column-filters';
+function populateDeviceFilterSelects() {
+  DEVICE_FILTER_KEYS.forEach(({ selectId, dataAttr }) => {
+    const select = document.getElementById(selectId);
+    if (!select) return;
 
-  FILTER_CONFIG.forEach(({ key, label, dataAttr }) => {
-    const options = getFilterOptions(dataAttr);
-    const filter = document.createElement('div');
-    filter.className = 'col-filter';
-    filter.dataset.filter = key;
-
-    filter.innerHTML = `
-      <button type="button" class="col-filter-btn" aria-haspopup="listbox" aria-expanded="false">
-        <span class="col-filter-name">${label}</span>
-        <span class="col-filter-value">All</span>
-        <i class="fa-solid fa-chevron-down col-filter-chevron"></i>
-      </button>
-      <div class="col-filter-menu" hidden>
-        <div class="col-filter-search-wrap">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" class="col-filter-search" placeholder="Search ${label.toLowerCase()}…" autocomplete="off">
-        </div>
-        <ul class="col-filter-options" role="listbox">
-          <li class="col-filter-option active" data-value="" role="option">All</li>
-          ${options.map((opt) => `<li class="col-filter-option" data-value="${opt.replace(/"/g, '&quot;')}" role="option">${opt}</li>`).join('')}
-        </ul>
-      </div>
-    `;
-
-    toolbar.appendChild(filter);
-  });
-
-  return toolbar;
-}
-
-function setupColumnFilterEvents(table) {
-  const filtersRoot = document.querySelector('#scanner-table_wrapper .column-filters');
-  if (!filtersRoot) return;
-
-  function closeAllMenus(except) {
-    filtersRoot.querySelectorAll('.col-filter').forEach((filter) => {
-      if (filter === except) return;
-      filter.querySelector('.col-filter-menu').hidden = true;
-      filter.querySelector('.col-filter-btn').setAttribute('aria-expanded', 'false');
-    });
-  }
-
-  filtersRoot.querySelectorAll('.col-filter').forEach((filter) => {
-    const key = filter.dataset.filter;
-    const btn = filter.querySelector('.col-filter-btn');
-    const menu = filter.querySelector('.col-filter-menu');
-    const searchInput = filter.querySelector('.col-filter-search');
-    const valueLabel = filter.querySelector('.col-filter-value');
-    const options = filter.querySelectorAll('.col-filter-option');
-
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isOpen = !menu.hidden;
-      closeAllMenus(filter);
-      menu.hidden = isOpen;
-      btn.setAttribute('aria-expanded', String(!isOpen));
-      if (!isOpen) {
-        searchInput.value = '';
-        options.forEach((opt) => { opt.hidden = false; });
-        searchInput.focus();
-      }
-    });
-
-    searchInput.addEventListener('input', () => {
-      const query = searchInput.value.trim().toLowerCase();
-      options.forEach((opt) => {
-        const text = opt.textContent.trim().toLowerCase();
-        opt.hidden = query !== '' && !text.includes(query);
-      });
-    });
-
-    searchInput.addEventListener('click', (e) => e.stopPropagation());
-
+    const options = getDeviceFilterOptions(dataAttr);
     options.forEach((opt) => {
-      opt.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const value = opt.dataset.value;
-        columnFilters[key] = value;
-        valueLabel.textContent = value || 'All';
-        btn.classList.toggle('is-active', Boolean(value));
+      const option = document.createElement('option');
+      option.value = opt;
+      option.textContent = opt;
+      select.appendChild(option);
+    });
+  });
+}
 
-        options.forEach((o) => o.classList.remove('active'));
-        opt.classList.add('active');
+function updateScannersInView(table) {
+  const countEl = document.getElementById('scanners-in-view');
+  if (!countEl || !table) return;
+  const count = table.rows({ search: 'applied' }).count();
+  countEl.textContent = count.toLocaleString('en-US');
+}
 
-        menu.hidden = true;
-        btn.setAttribute('aria-expanded', 'false');
-        table.draw();
-      });
+function rowMatchesDeviceSearch(row, query) {
+  if (!query) return true;
+
+  const haystack = [
+    row.dataset.serial,
+    row.dataset.retailer,
+    row.dataset.city,
+    row.dataset.country,
+    row.dataset.model,
+    row.dataset.version,
+    row.dataset.status,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  return haystack.includes(query);
+}
+
+function initDevicesTable() {
+  const tableEl = document.getElementById('scanner-table');
+  if (!tableEl || typeof DataTable === 'undefined') return;
+
+  populateDeviceFilterSelects();
+
+  DataTable.ext.search.push((settings, _searchData, dataIndex) => {
+    if (settings.nTable.id !== 'scanner-table') return true;
+
+    const row = settings.aoData?.[dataIndex]?.nTr;
+    if (!row) return true;
+
+    if (!rowMatchesDeviceSearch(row, deviceFilters.search)) return false;
+
+    return DEVICE_FILTER_KEYS.every(({ key, dataAttr }) => {
+      const value = deviceFilters[key];
+      return !value || row.dataset[dataAttr] === value;
     });
   });
 
-  document.addEventListener('click', () => closeAllMenus());
-}
-
-function initDataTable() {
-  scannerTable = new DataTable('#scanner-table', {
+  const table = new DataTable(tableEl, {
     pageLength: 10,
     lengthMenu: [10, 25, 50],
     responsive: true,
-    order: [[0, 'asc']],
+    order: [[5, 'desc']],
     layout: {
-      topStart: 'search',
-      topEnd: 'pageLength',
+      topStart: null,
+      topEnd: null,
       bottomStart: 'info',
       bottomEnd: 'paging',
     },
     language: {
       search: '',
-      searchPlaceholder: 'Search scanners…',
+      searchPlaceholder: 'Search serial, retailer, city…',
       lengthMenu: 'Show _MENU_ entries',
       info: 'Showing _START_ to _END_ of _TOTAL_ scanners',
-      infoEmpty: 'No scanners found',
+      infoEmpty: 'No devices match the current filters',
       infoFiltered: '(filtered from _MAX_ total)',
+      zeroRecords: 'No devices match the current filters',
+      emptyTable: 'No devices match the current filters',
       paginate: { first: 'First', last: 'Last', next: 'Next', previous: 'Prev' },
-      emptyTable: 'No scanner data available',
     },
-    columnDefs: [{ orderable: false, targets: 6 }],
+    columnDefs: [
+      { orderable: false, targets: 7 },
+      { className: 'dt-body-right', targets: 6 },
+    ],
     initComplete() {
-      const topStart = document.querySelector('#scanner-table_wrapper .dt-layout-row:first-child .dt-layout-start');
-      if (topStart) {
-        topStart.classList.add('table-toolbar-start');
-        topStart.appendChild(buildColumnFiltersToolbar());
-        setupColumnFilterEvents(this.api());
+      const wrapper = document.getElementById('scanner-table_wrapper');
+      if (wrapper) {
+        wrapper.classList.add('devices-table-wrapper');
+        // Remove empty top feature row so the table is first
+        const topRow = wrapper.querySelector('.dt-layout-row:first-child');
+        if (topRow && !topRow.querySelector('table') && !topRow.querySelector('.dt-info') && !topRow.querySelector('.dt-paging')) {
+          const empty = !topRow.textContent.trim() && !topRow.querySelector('input, select, button');
+          if (empty) topRow.remove();
+        }
       }
+      updateScannersInView(this.api());
     },
+  });
+
+  table.on('draw', () => updateScannersInView(table));
+
+  const searchInput = document.getElementById('fleet-search');
+  if (searchInput) {
+    let debounceTimer;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        deviceFilters.search = searchInput.value.trim().toLowerCase();
+        table.draw();
+      }, 150);
+    });
+  }
+
+  DEVICE_FILTER_KEYS.forEach(({ key, selectId }) => {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    select.addEventListener('change', () => {
+      deviceFilters[key] = select.value;
+      table.draw();
+    });
   });
 }

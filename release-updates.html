@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fleet Overview — Aetrex Scanner Fleet Management</title>
-
-  <!-- Fonts: Control Panel uses Segoe UI on Windows (no web font needed) -->
+  <title>Releases & Upgrades — Aetrex Scanner Fleet Management</title>
 
   <!-- Tailwind CSS -->
   <script src="assets/vendors/tailwind/tailwindcss.js"></script>
@@ -49,10 +47,6 @@
   <!-- Font Awesome -->
   <link rel="stylesheet" href="assets/vendors/font-awesome/css/all.min.css">
 
-  <!-- Leaflet CSS (CDN) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-
   <!-- App styles -->
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -73,7 +67,7 @@
 
       <nav class="sidebar-nav flex-1">
         <p class="sidebar-section-label">Dashboards</p>
-        <a href="index.html" class="sidebar-link active">
+        <a href="index.html" class="sidebar-link">
           <i class="fa-solid fa-border-all"></i>
           <span class="sidebar-link-text">Fleet Overview</span>
         </a>
@@ -81,11 +75,10 @@
           <i class="fa-solid fa-map-location-dot"></i>
           <span class="sidebar-link-text">Location Explorer</span>
         </a>
-        <a href="release-updates.html" class="sidebar-link">
+        <a href="release-updates.html" class="sidebar-link active">
           <i class="fa-solid fa-arrow-up-from-bracket"></i>
           <span class="sidebar-link-text">Releases &amp; Upgrades</span>
         </a>
-        
         <a href="devices.html" class="sidebar-link">
           <i class="fa-solid fa-computer"></i>
           <span class="sidebar-link-text">Devices</span>
@@ -127,11 +120,11 @@
             <i class="fa-solid fa-bars text-sm"></i>
           </button>
           <div class="min-w-0">
-            <h1 class="truncate">Fleet Overview</h1>
-            <p class="page-header-subtitle truncate">Real-time visibility into the deployed scanner ecosystem</p>
+            <h1 class="truncate">Releases &amp; Upgrades</h1>
+            <p class="page-header-subtitle truncate">Version adoption, upgrade compliance and rollout health</p>
           </div>
         </div>
-          <div class="flex items-center gap-3 shrink-0">
+        <div class="flex items-center gap-3 shrink-0">
           <span class="data-as-of hidden sm:inline-flex">
             <span class="data-as-of-dot" aria-hidden="true"></span>
             <span id="data-as-of">Data as of —</span>
@@ -157,6 +150,7 @@
               <option value="UK">United Kingdom</option>
               <option value="DE">Germany</option>
               <option value="AU">Australia</option>
+              <option value="FR">France</option>
             </select>
             <select id="filter-model" aria-label="Filter by model">
               <option value="">All models</option>
@@ -175,9 +169,10 @@
             </select>
             <select id="filter-status" aria-label="Filter by status">
               <option value="">All statuses</option>
-              <option value="active">Active</option>
-              <option value="idle">Idle</option>
-              <option value="offline">Offline</option>
+              <option value="upgraded">Upgraded</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="failed">Failed</option>
+              <option value="unsupported">Unsupported</option>
             </select>
           </div>
           <div class="filter-actions">
@@ -190,138 +185,186 @@
         </section>
 
         <!-- KPI cards -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <div class="cp-card kpi-card p-4">
-            <p class="kpi-label">Total scanners</p>
-            <p class="kpi-value">4,238</p>
-            <p class="kpi-meta">entire deployed fleet</p>
-          </div>
-
-          <div class="cp-card kpi-card p-4">
-            <p class="kpi-label">Active</p>
-            <p class="kpi-value">3,986</p>
-            <p class="kpi-meta kpi-meta-success">94% scanning this month</p>
-          </div>
-
-          <div class="cp-card kpi-card p-4">
-            <p class="kpi-label">Offline</p>
-            <p class="kpi-value">98</p>
-            <p class="kpi-meta kpi-meta-danger">2% — no contact 7d+</p>
-          </div>
-
-          <div class="cp-card kpi-card p-4">
-            <p class="kpi-label">On latest release</p>
+            <p class="kpi-label">Adoption v4.5</p>
             <p class="kpi-value">82%</p>
-            <p class="kpi-meta kpi-meta-info">v4.5 · 3,475 devices</p>
+            <p class="kpi-meta kpi-meta-danger">target 90%</p>
+          </div>
+
+          <div class="cp-card kpi-card p-4">
+            <p class="kpi-label">Upgraded</p>
+            <p class="kpi-value">3,475</p>
+            <p class="kpi-meta kpi-meta-success">since May 18 release</p>
+          </div>
+
+          <div class="cp-card kpi-card p-4">
+            <p class="kpi-label">Scheduled</p>
+            <p class="kpi-value">315</p>
+            <p class="kpi-meta kpi-meta-info">queued for next window</p>
+          </div>
+
+          <div class="cp-card kpi-card p-4">
+            <p class="kpi-label">Failed</p>
+            <p class="kpi-value kpi-value-danger">18</p>
+            <p class="kpi-meta kpi-meta-danger">rollback detected</p>
           </div>
 
           <div class="cp-card kpi-card p-4">
             <p class="kpi-label">Unsupported</p>
-            <p class="kpi-value">125</p>
-            <p class="kpi-meta kpi-meta-danger">below v4.2 — action needed</p>
-          </div>
-
-          <div class="cp-card kpi-card p-4">
-            <p class="kpi-label">Failed upgrades</p>
-            <p class="kpi-value">18</p>
-            <p class="kpi-meta kpi-meta-danger">need intervention</p>
+            <p class="kpi-value kpi-value-danger">125</p>
+            <p class="kpi-meta kpi-meta-danger">below v4.2</p>
           </div>
         </section>
 
-
-        <!-- Map + Fleet by model -->
-        <section class="grid grid-cols-1 xl:grid-cols-3 gap-4">
-          <div class="cp-card p-5 sm:p-6 xl:col-span-2 flex flex-col">
-            <div class="flex items-start justify-between gap-3 mb-1">
-              <div>
-                <h2 class="cp-card-title">Global fleet distribution</h2>
-                <p class="cp-card-subtitle">Bubble = scanners per metro — click to explore the metro</p>
-              </div>
-              <a href="location-explorer.html" class="card-link shrink-0">
-                Open location explorer
-                <i class="fa-solid fa-arrow-right text-[10px]"></i>
-              </a>
-            </div>
-            <div class="fleet-map" id="fleet-map" aria-label="World map showing scanner fleet distribution by metro">
-              <div id="fleet-map-canvas" class="fleet-map-canvas"></div>
-              <div class="fleet-map-legend" id="fleet-map-legend"></div>
-            </div>
-          </div>
-
-          <div class="cp-card chart-card p-5 sm:p-6 flex flex-col">
-            <h2 class="cp-card-title mb-1">Fleet by model</h2>
-            <p class="cp-card-subtitle">Distribution of deployed scanner models</p>
-            <div class="chart-container chart-container-donut flex-1">
-              <canvas id="modelChart"></canvas>
-            </div>
-            <p class="model-footer">
-              <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-              Deployed across <strong>12</strong> countries · <strong>48</strong> metros
-            </p>
-          </div>
-        </section>
-
-        <!-- Version bar + Activity status -->
+        <!-- Adoption chart + Upgrade pipeline -->
         <section class="grid grid-cols-1 xl:grid-cols-3 gap-4">
           <div class="cp-card chart-card p-5 sm:p-6 xl:col-span-2">
-            <h2 class="cp-card-title mb-1">Software version distribution</h2>
-            <p class="cp-card-subtitle">Current versions across the fleet</p>
-            <div class="chart-container">
-              <canvas id="versionChart"></canvas>
+            <h2 class="cp-card-title mb-1">Latest release adoption — v4.5</h2>
+            <p class="cp-card-subtitle">% of fleet upgraded since release (May 18)</p>
+            <div class="chart-container chart-container-adoption">
+              <canvas id="adoptionChart"></canvas>
             </div>
           </div>
 
           <div class="cp-card p-5 sm:p-6 flex flex-col">
-            <h2 class="cp-card-title mb-1">Scanner activity status</h2>
-            <p class="cp-card-subtitle mb-5">Operational state of scanners in view</p>
+            <h2 class="cp-card-title mb-1">Upgrade pipeline</h2>
+            <p class="cp-card-subtitle mb-5">Rollout state toward v4.5</p>
 
             <ul class="activity-list flex-1">
               <li class="activity-row">
                 <span class="activity-label">
                   <span class="activity-dot activity-dot-active"></span>
-                  Active
+                  Upgraded
                 </span>
                 <div class="activity-bar-track" aria-hidden="true">
-                  <div class="activity-bar-fill activity-bar-active" style="width: 94%"></div>
+                  <div class="activity-bar-fill activity-bar-active" style="width: 82%"></div>
                 </div>
                 <span class="activity-stats">
-                  <span class="activity-count">3,986</span>
-                  <span class="activity-pct">94%</span>
+                  <span class="activity-count">3,475</span>
                 </span>
               </li>
               <li class="activity-row">
                 <span class="activity-label">
-                  <span class="activity-dot activity-dot-idle"></span>
-                  Idle
+                  <span class="activity-dot activity-dot-scheduled"></span>
+                  Scheduled
                 </span>
                 <div class="activity-bar-track" aria-hidden="true">
-                  <div class="activity-bar-fill activity-bar-idle" style="width: 4%"></div>
+                  <div class="activity-bar-fill activity-bar-scheduled" style="width: 7%"></div>
                 </div>
                 <span class="activity-stats">
-                  <span class="activity-count">154</span>
-                  <span class="activity-pct">4%</span>
+                  <span class="activity-count">315</span>
                 </span>
               </li>
               <li class="activity-row">
                 <span class="activity-label">
                   <span class="activity-dot activity-dot-offline"></span>
-                  Offline
+                  Failed
                 </span>
                 <div class="activity-bar-track" aria-hidden="true">
-                  <div class="activity-bar-fill activity-bar-offline" style="width: 2%"></div>
+                  <div class="activity-bar-fill activity-bar-offline" style="width: 1%"></div>
                 </div>
                 <span class="activity-stats">
-                  <span class="activity-count">98</span>
-                  <span class="activity-pct">2%</span>
+                  <span class="activity-count">18</span>
+                </span>
+              </li>
+              <li class="activity-row">
+                <span class="activity-label">
+                  <span class="activity-dot activity-dot-idle" style="background:#999999"></span>
+                  Not scheduled
+                </span>
+                <div class="activity-bar-track" aria-hidden="true">
+                  <div class="activity-bar-fill" style="width: 10%; background:#999999"></div>
+                </div>
+                <span class="activity-stats">
+                  <span class="activity-count">430</span>
                 </span>
               </li>
             </ul>
 
-            <div class="activity-alert mt-5">
-              <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-              <p><strong>98</strong> scanners have not communicated in over 14 days —
-                <a href="#">see Alerts</a>.</p>
+            <div class="activity-alert activity-alert-danger mt-5">
+              <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+              <p><strong>18</strong> failed upgrades require intervention — most common: interrupted download over store Wi-Fi.</p>
             </div>
+          </div>
+        </section>
+
+        <!-- Unsupported devices table -->
+        <section class="cp-card p-5 sm:p-6">
+          <div class="card-header-row mb-1">
+            <div>
+              <h2 class="section-title">Devices on unsupported versions</h2>
+              <p class="section-subtitle">125 devices below v4.2 — prioritized by last contact</p>
+            </div>
+            <a href="devices.html" class="card-link shrink-0">
+              View all in Devices
+              <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+          </div>
+
+          <div class="overflow-x-auto mt-4">
+            <table id="unsupported-table" class="cp-data-table w-full">
+              <thead>
+                <tr>
+                  <th>Serial</th>
+                  <th>Model</th>
+                  <th>Store</th>
+                  <th>Country</th>
+                  <th>Version</th>
+                  <th>Last Contact</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>APS-4492</td>
+                  <td>Albert Pressure Scanner</td>
+                  <td>Nordstrom — Seattle</td>
+                  <td>United States</td>
+                  <td>v4.1</td>
+                  <td>26 days ago</td>
+                </tr>
+                <tr>
+                  <td>ALB-6712</td>
+                  <td>Albert Pro</td>
+                  <td>Intersport — Berlin</td>
+                  <td>Germany</td>
+                  <td>v4.0</td>
+                  <td>16 days ago</td>
+                </tr>
+                <tr>
+                  <td>ZOE-0901</td>
+                  <td>Zoe Pro</td>
+                  <td>Academy Sports — Dallas</td>
+                  <td>United States</td>
+                  <td>v3.9</td>
+                  <td>14 days ago</td>
+                </tr>
+                <tr>
+                  <td>FIT-1044</td>
+                  <td>Albert 3DFit</td>
+                  <td>Fleet Feet — Denver</td>
+                  <td>United States</td>
+                  <td>v4.1</td>
+                  <td>12 days ago</td>
+                </tr>
+                <tr>
+                  <td>APS-1188</td>
+                  <td>Albert Pressure Scanner</td>
+                  <td>REI — Boulder</td>
+                  <td>United States</td>
+                  <td>v4.0</td>
+                  <td>9 days ago</td>
+                </tr>
+                <tr>
+                  <td>ALB-2205</td>
+                  <td>Albert Pro</td>
+                  <td>Decathlon — Lyon</td>
+                  <td>France</td>
+                  <td>v3.8</td>
+                  <td>8 days ago</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
 
@@ -329,16 +372,8 @@
     </div>
   </div>
 
-  <!-- Leaflet + Papa Parse (CDN) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
   <!-- Vendor scripts -->
   <script src="assets/vendors/chartjs/chart.umd.min.js"></script>
-  <script src="js/fleet-map.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

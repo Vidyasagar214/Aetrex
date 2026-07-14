@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devices — Aetrex Scanner Fleet Management</title>
+
+  <!-- Tailwind CSS -->
+  <script src="assets/vendors/tailwind/tailwindcss.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sidebar: '#354f5e',
+            'sidebar-active': '#d9534f',
+            'sidebar-nav': '#5a7382',
+            'page-bg': '#f0f2f5',
+            'header-bg': '#ced4da',
+            'card-border': '#dee2e6',
+            'text-primary': '#333333',
+            'text-secondary': '#666666',
+            'chart-teal': '#7bc9d7',
+            'chart-blue': '#1a9dd4',
+            accent: '#337ab7',
+            success: '#5cb85c',
+            warning: '#f0ad4e',
+            danger: '#d9534f',
+          },
+          fontFamily: {
+            sans: ['Segoe UI', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+          },
+          fontWeight: {
+            normal: '400',
+            medium: '500',
+            semibold: '600',
+            bold: '700',
+          },
+          boxShadow: {
+            card: '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="assets/vendors/font-awesome/css/all.min.css">
+
+  <!-- DataTables -->
+  <link rel="stylesheet" href="assets/vendors/datatables/css/dataTables.dataTables.min.css">
+  <link rel="stylesheet" href="assets/vendors/datatables/css/responsive.dataTables.min.css">
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="font-sans font-normal bg-page-bg text-text-primary min-h-screen">
+
+  <!-- Mobile sidebar overlay -->
+  <div id="sidebar-overlay" class="sidebar-overlay hidden fixed inset-0 bg-black/40 z-30 lg:hidden" aria-hidden="true"></div>
+
+  <div class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside id="sidebar"
+      class="fixed inset-y-0 left-0 z-40 w-[220px] bg-sidebar text-white flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out shrink-0">
+
+      <div class="sidebar-brand">
+        <img src="assets/aetrex-logo1.png" alt="Aetrex">
+      </div>
+
+      <nav class="sidebar-nav flex-1">
+        <p class="sidebar-section-label">Dashboards</p>
+        <a href="index.html" class="sidebar-link">
+          <i class="fa-solid fa-border-all"></i>
+          <span class="sidebar-link-text">Fleet Overview</span>
+        </a>
+        <a href="location-explorer.html" class="sidebar-link">
+          <i class="fa-solid fa-map-location-dot"></i>
+          <span class="sidebar-link-text">Location Explorer</span>
+        </a>
+        <a href="release-updates.html" class="sidebar-link">
+          <i class="fa-solid fa-arrow-up-from-bracket"></i>
+          <span class="sidebar-link-text">Releases &amp; Upgrades</span>
+        </a>
+        <a href="devices.html" class="sidebar-link active">
+          <i class="fa-solid fa-computer"></i>
+          <span class="sidebar-link-text">Devices</span>
+        </a>
+
+        <p class="sidebar-section-label">Roadmap Preview</p>
+        <a href="#" class="sidebar-link sidebar-link-roadmap" aria-disabled="true" tabindex="-1">
+          <i class="fa-solid fa-heart-pulse"></i>
+          <span class="sidebar-link-text">Activity &amp; Health</span>
+          <span class="sidebar-badge">Phase 2</span>
+        </a>
+        <a href="#" class="sidebar-link sidebar-link-roadmap" aria-disabled="true" tabindex="-1">
+          <i class="fa-solid fa-microchip"></i>
+          <span class="sidebar-link-text">Hardware Inventory</span>
+          <span class="sidebar-badge">Phase 2</span>
+        </a>
+        <a href="#" class="sidebar-link sidebar-link-roadmap" aria-disabled="true" tabindex="-1">
+          <i class="fa-solid fa-bell"></i>
+          <span class="sidebar-link-text">Alerts</span>
+          <span class="sidebar-badge">Phase 3</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p class="sidebar-footer-title">Scanner Fleet Management</p>
+        <p class="sidebar-footer-meta">PoC v0.2 · Trigent × Aetrex</p>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="app-main flex-1 flex flex-col min-w-0">
+
+      <!-- Header bar -->
+      <header class="page-header-bar flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3 min-w-0">
+          <button id="sidebar-toggle" type="button"
+            class="lg:hidden w-8 h-8 flex items-center justify-center rounded border border-card-border text-text-secondary hover:bg-white/50 transition-colors shrink-0 bg-white/30"
+            aria-label="Toggle sidebar">
+            <i class="fa-solid fa-bars text-sm"></i>
+          </button>
+          <div class="min-w-0">
+            <h1 class="truncate">Devices</h1>
+            <p class="page-header-subtitle truncate">Search, filter and inspect every scanner in the fleet</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <span class="data-as-of hidden sm:inline-flex">
+            <span class="data-as-of-dot" aria-hidden="true"></span>
+            <span id="data-as-of">Data as of —</span>
+          </span>
+          <div class="header-avatar" aria-label="User avatar">JS</div>
+        </div>
+      </header>
+
+      <!-- Page body -->
+      <main class="flex-1 p-5 lg:p-6 space-y-5">
+
+        <!-- Filters -->
+        <section class="filter-bar">
+          <div class="filter-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input type="search" id="fleet-search" placeholder="Search serial, retailer, city…" autocomplete="off">
+          </div>
+          <div class="filter-selects">
+            <select id="filter-country" aria-label="Filter by country">
+              <option value="">All countries</option>
+            </select>
+            <select id="filter-model" aria-label="Filter by model">
+              <option value="">All models</option>
+            </select>
+            <select id="filter-version" aria-label="Filter by version">
+              <option value="">All versions</option>
+            </select>
+            <select id="filter-status" aria-label="Filter by status">
+              <option value="">All statuses</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button type="button" class="btn-export">
+              <i class="fa-solid fa-download"></i>
+              Export report
+            </button>
+            <p class="filter-count"><span id="scanners-in-view">0</span> scanners in view</p>
+          </div>
+        </section>
+
+        <!-- Devices table -->
+        <section class="cp-card p-5 sm:p-6">
+          <div class="overflow-x-auto">
+            <table id="scanner-table" class="w-full display responsive nowrap">
+              <thead>
+                <tr>
+                  <th>Serial</th>
+                  <th>Model</th>
+                  <th>Retailer / Store</th>
+                  <th>Country</th>
+                  <th>Version</th>
+                  <th>Last Contact</th>
+                  <th>Scans 30d</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-serial="ALB-10234" data-model="Albert Pro" data-retailer="DSG — Times Square" data-country="United States" data-city="New York" data-version="v4.5" data-status="Active">
+                  <td>ALB-10234</td>
+                  <td>Albert Pro</td>
+                  <td>DSG — Times Square</td>
+                  <td>United States</td>
+                  <td>v4.5</td>
+                  <td data-order="2026-07-14T08:58:00Z">2 min ago</td>
+                  <td data-order="1842">1,842</td>
+                  <td><span class="status-badge status-online">Active</span></td>
+                </tr>
+                <tr data-serial="ZOE-8821" data-model="Zoe Pro" data-retailer="Skechers — SoHo" data-country="United States" data-city="New York" data-version="v4.4" data-status="Idle">
+                  <td>ZOE-8821</td>
+                  <td>Zoe Pro</td>
+                  <td>Skechers — SoHo</td>
+                  <td>United States</td>
+                  <td>v4.4</td>
+                  <td data-order="2026-07-13T09:00:00Z">1 day ago</td>
+                  <td data-order="126">126</td>
+                  <td><span class="status-badge status-pending">Idle</span></td>
+                </tr>
+                <tr data-serial="APS-4492" data-model="Albert Pressure Scanner" data-retailer="Nordstrom — Seattle" data-country="United States" data-city="Seattle" data-version="v4.2" data-status="Offline">
+                  <td>APS-4492</td>
+                  <td>Albert Pressure Scanner</td>
+                  <td>Nordstrom — Seattle</td>
+                  <td>United States</td>
+                  <td>v4.2</td>
+                  <td data-order="2026-06-18T10:00:00Z">26 days ago</td>
+                  <td data-order="0">0</td>
+                  <td><span class="status-badge status-offline">Offline</span></td>
+                </tr>
+                <tr data-serial="ALB-8844" data-model="Albert Pro" data-retailer="Foot Locker — Oxford St" data-country="United Kingdom" data-city="London" data-version="v4.5" data-status="Active">
+                  <td>ALB-8844</td>
+                  <td>Albert Pro</td>
+                  <td>Foot Locker — Oxford St</td>
+                  <td>United Kingdom</td>
+                  <td>v4.5</td>
+                  <td data-order="2026-07-14T08:45:00Z">15 min ago</td>
+                  <td data-order="956">956</td>
+                  <td><span class="status-badge status-online">Active</span></td>
+                </tr>
+                <tr data-serial="FIT-2201" data-model="Albert 3DFit" data-retailer="Fleet Feet — Chicago" data-country="United States" data-city="Chicago" data-version="v4.5" data-status="Active">
+                  <td>FIT-2201</td>
+                  <td>Albert 3DFit</td>
+                  <td>Fleet Feet — Chicago</td>
+                  <td>United States</td>
+                  <td>v4.5</td>
+                  <td data-order="2026-07-14T08:55:00Z">5 min ago</td>
+                  <td data-order="1204">1,204</td>
+                  <td><span class="status-badge status-online">Active</span></td>
+                </tr>
+                <tr data-serial="ZOE-1120" data-model="Zoe Pro" data-retailer="Academy Sports — Houston" data-country="United States" data-city="Houston" data-version="v4.3" data-status="Idle">
+                  <td>ZOE-1120</td>
+                  <td>Zoe Pro</td>
+                  <td>Academy Sports — Houston</td>
+                  <td>United States</td>
+                  <td>v4.3</td>
+                  <td data-order="2026-07-03T12:00:00Z">11 days ago</td>
+                  <td data-order="48">48</td>
+                  <td><span class="status-badge status-pending">Idle</span></td>
+                </tr>
+                <tr data-serial="APS-7008" data-model="Albert Pressure Scanner" data-retailer="REI — Portland" data-country="United States" data-city="Portland" data-version="v4.5" data-status="Active">
+                  <td>APS-7008</td>
+                  <td>Albert Pressure Scanner</td>
+                  <td>REI — Portland</td>
+                  <td>United States</td>
+                  <td>v4.5</td>
+                  <td data-order="2026-07-13T14:00:00Z">Yesterday</td>
+                  <td data-order="412">412</td>
+                  <td><span class="status-badge status-online">Active</span></td>
+                </tr>
+                <tr data-serial="ALB-4510" data-model="Albert Pro" data-retailer="Dick's — Pittsburgh" data-country="United States" data-city="Pittsburgh" data-version="v4.4" data-status="Idle">
+                  <td>ALB-4510</td>
+                  <td>Albert Pro</td>
+                  <td>Dick's — Pittsburgh</td>
+                  <td>United States</td>
+                  <td>v4.4</td>
+                  <td data-order="2026-07-11T16:00:00Z">3 days ago</td>
+                  <td data-order="87">87</td>
+                  <td><span class="status-badge status-pending">Idle</span></td>
+                </tr>
+                <tr data-serial="FIT-3308" data-model="Albert 3DFit" data-retailer="Sport Chek — Toronto" data-country="Canada" data-city="Toronto" data-version="v4.5" data-status="Active">
+                  <td>FIT-3308</td>
+                  <td>Albert 3DFit</td>
+                  <td>Sport Chek — Toronto</td>
+                  <td>Canada</td>
+                  <td>v4.5</td>
+                  <td data-order="2026-07-14T08:40:00Z">20 min ago</td>
+                  <td data-order="678">678</td>
+                  <td><span class="status-badge status-online">Active</span></td>
+                </tr>
+                <tr data-serial="ALB-6712" data-model="Albert Pro" data-retailer="Intersport — Berlin" data-country="Germany" data-city="Berlin" data-version="v4.3" data-status="Offline">
+                  <td>ALB-6712</td>
+                  <td>Albert Pro</td>
+                  <td>Intersport — Berlin</td>
+                  <td>Germany</td>
+                  <td>v4.3</td>
+                  <td data-order="2026-06-28T09:00:00Z">16 days ago</td>
+                  <td data-order="12">12</td>
+                  <td><span class="status-badge status-offline">Offline</span></td>
+                </tr>
+                <tr data-serial="ZOE-4410" data-model="Zoe Pro" data-retailer="The Athlete's Foot — Sydney" data-country="Australia" data-city="Sydney" data-version="v4.5" data-status="Active">
+                  <td>ZOE-4410</td>
+                  <td>Zoe Pro</td>
+                  <td>The Athlete's Foot — Sydney</td>
+                  <td>Australia</td>
+                  <td>v4.5</td>
+                  <td data-order="2026-07-14T07:00:00Z">2 hrs ago</td>
+                  <td data-order="531">531</td>
+                  <td><span class="status-badge status-online">Active</span></td>
+                </tr>
+                <tr data-serial="APS-2199" data-model="Albert Pressure Scanner" data-retailer="Decathlon — Paris" data-country="France" data-city="Paris" data-version="v4.4" data-status="Active">
+                  <td>APS-2199</td>
+                  <td>Albert Pressure Scanner</td>
+                  <td>Decathlon — Paris</td>
+                  <td>France</td>
+                  <td>v4.4</td>
+                  <td data-order="2026-07-14T08:20:00Z">40 min ago</td>
+                  <td data-order="289">289</td>
+                  <td><span class="status-badge status-online">Active</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Vendor scripts -->
+  <script src="assets/vendors/jquery/jquery-3.7.1.min.js"></script>
+  <script src="assets/vendors/datatables/js/dataTables.min.js"></script>
+  <script src="assets/vendors/datatables/js/dataTables.responsive.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Explorer — Aetrex Scanner Fleet Management</title>
+
+    <script src="assets/vendors/tailwind/tailwindcss.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sidebar: '#354f5e',
+                        'sidebar-active': '#d9534f',
+                        'sidebar-nav': '#5a7382',
+                        'page-bg': '#f0f2f5',
+                        'header-bg': '#ced4da',
+                        'card-border': '#dee2e6',
+                        'text-primary': '#333333',
+                        'text-secondary': '#666666',
+                        'chart-teal': '#7bc9d7',
+                        'chart-blue': '#1a9dd4',
+                        accent: '#337ab7',
+                        success: '#5cb85c',
+                        warning: '#f0ad4e',
+                        danger: '#d9534f',
+                    },
+                    fontFamily: {
+                        sans: ['Segoe UI', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    fontWeight: {
+                        normal: '400',
+                        medium: '500',
+                        semibold: '600',
+                        bold: '700',
+                    },
+                    boxShadow: {
+                        card: '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+                    },
+                },
+            },
+        };
+    </script>
+
+    <link rel="stylesheet" href="assets/vendors/font-awesome/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="font-sans font-normal bg-page-bg text-text-primary min-h-screen">
+
+    <div id="sidebar-overlay" class="sidebar-overlay hidden fixed inset-0 bg-black/40 z-30 lg:hidden"
+        aria-hidden="true"></div>
+
+    <div class="flex min-h-screen">
+
+        <aside id="sidebar"
+            class="fixed inset-y-0 left-0 z-40 w-[220px] bg-sidebar text-white flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out shrink-0">
+
+            <div class="sidebar-brand">
+                <img src="assets/aetrex-logo1.png" alt="Aetrex">
+            </div>
+
+            <nav class="sidebar-nav flex-1">
+                <p class="sidebar-section-label">Dashboards</p>
+                <a href="index.html" class="sidebar-link">
+                    <i class="fa-solid fa-border-all"></i>
+                    <span class="sidebar-link-text">Fleet Overview</span>
+                </a>
+                <a href="location-explorer.html" class="sidebar-link active">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <span class="sidebar-link-text">Location Explorer</span>
+                </a>
+                <a href="release-updates.html" class="sidebar-link">
+                    <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                    <span class="sidebar-link-text">Releases &amp; Upgrades</span>
+                </a>
+                <a href="devices.html" class="sidebar-link">
+                    <i class="fa-solid fa-computer"></i>
+                    <span class="sidebar-link-text">Devices</span>
+                </a>
+
+                <p class="sidebar-section-label">Roadmap Preview</p>
+                <a href="#" class="sidebar-link sidebar-link-roadmap" aria-disabled="true" tabindex="-1">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                    <span class="sidebar-link-text">Activity &amp; Health</span>
+                    <span class="sidebar-badge">Phase 2</span>
+                </a>
+                <a href="#" class="sidebar-link sidebar-link-roadmap" aria-disabled="true" tabindex="-1">
+                    <i class="fa-solid fa-microchip"></i>
+                    <span class="sidebar-link-text">Hardware Inventory</span>
+                    <span class="sidebar-badge">Phase 2</span>
+                </a>
+                <a href="#" class="sidebar-link sidebar-link-roadmap" aria-disabled="true" tabindex="-1">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="sidebar-link-text">Alerts</span>
+                    <span class="sidebar-badge">Phase 3</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p class="sidebar-footer-title">Scanner Fleet Management</p>
+                <p class="sidebar-footer-meta">PoC v0.2 · Trigent × Aetrex</p>
+            </div>
+        </aside>
+
+        <div class="app-main flex-1 flex flex-col min-w-0">
+
+            <header class="page-header-bar flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3 min-w-0">
+                    <button id="sidebar-toggle" type="button"
+                        class="lg:hidden w-8 h-8 flex items-center justify-center rounded border border-card-border text-text-secondary hover:bg-white/50 transition-colors shrink-0 bg-white/30"
+                        aria-label="Toggle sidebar">
+                        <i class="fa-solid fa-bars text-sm"></i>
+                    </button>
+                    <div class="min-w-0">
+                        <h1 class="truncate">Location Explorer</h1>
+                        <p class="page-header-subtitle truncate">Explore scanner density by metro and inspect online /
+                            offline availability</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                    <span class="data-as-of hidden sm:inline-flex">
+                        <span class="data-as-of-dot" aria-hidden="true"></span>
+                        <span id="data-as-of">Data as of —</span>
+                    </span>
+                    <div class="header-avatar" aria-label="User avatar">JS</div>
+                </div>
+            </header>
+
+            <main class="flex-1 p-5 lg:p-6 space-y-5 flex flex-col">
+
+                <section class="filter-bar">
+                    <div class="filter-search">
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                        <input type="search" id="metro-search" placeholder="Search metro or country…"
+                            autocomplete="off">
+                    </div>
+                    <div class="filter-actions">
+                        <button type="button" class="btn-export">
+                            <i class="fa-solid fa-download"></i>
+                            Export report
+                        </button>
+                        <p class="filter-count"><span id="scanners-in-view">0</span> scanners in view</p>
+                    </div>
+                </section>
+
+                <section>
+
+                    <div class="cp-card explorer-map-card">
+                        <div class="explorer-map-toolbar">
+                            <div>
+                                <h2 class="cp-card-title">Fleet locations</h2>
+                                <p class="cp-card-subtitle">Hover for tooltip · click for popup · use the list to focus
+                                    a metro</p>
+                            </div>
+                            <div class="fleet-map-legend fleet-map-legend-inline" id="explorer-legend"></div>
+                        </div>
+                        <div class="explorer-map-shell">
+                            <div id="explorer-map" class="explorer-map-canvas" aria-label="Location explorer map"></div>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="js/fleet-map.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
