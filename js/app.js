@@ -66,11 +66,6 @@ function initSidebar() {
 
   overlay.addEventListener('click', close);
 
-  // Roadmap preview links are not navigable yet
-  document.querySelectorAll('.sidebar-link-roadmap').forEach((link) => {
-    link.addEventListener('click', (e) => e.preventDefault());
-  });
-
   window.addEventListener('resize', () => {
     if (window.innerWidth >= 1024) {
       close();
