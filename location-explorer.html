@@ -145,14 +145,12 @@
                     </div>
                 </section>
 
-                <section>
-
+                <section class="explorer-map-section">
                     <div class="cp-card explorer-map-card">
                         <div class="explorer-map-toolbar">
                             <div>
                                 <h2 class="cp-card-title">Fleet locations</h2>
-                                <p class="cp-card-subtitle">Hover for tooltip · click for popup · use the list to focus
-                                    a metro</p>
+                                <p class="cp-card-subtitle">Hover for details · click a metro to open the scanner explorer</p>
                             </div>
                             <div class="fleet-map-legend fleet-map-legend-inline" id="explorer-legend"></div>
                         </div>
@@ -165,6 +163,55 @@
             </main>
         </div>
     </div>
+
+    <!-- Metro scanner explorer drawer (right overlay) -->
+    <div id="metro-drawer-backdrop" class="metro-drawer-backdrop" hidden aria-hidden="true"></div>
+    <aside id="metro-drawer" class="metro-drawer" aria-hidden="true" aria-labelledby="drawer-metro-name">
+        <div class="metro-drawer-header">
+            <div class="min-w-0">
+                <h2 id="drawer-metro-name" class="metro-drawer-title">Metro</h2>
+                <p id="drawer-metro-country" class="metro-drawer-subtitle">—</p>
+            </div>
+            <button type="button" id="metro-drawer-close" class="metro-drawer-close" aria-label="Close metro explorer">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="metro-drawer-kpis" id="metro-drawer-kpis">
+            <div class="metro-drawer-kpi">
+                <span class="label">Total Scanners</span>
+                <span class="value" data-drawer-stat="scanners">0</span>
+            </div>
+            <div class="metro-drawer-kpi">
+                <span class="label">Online</span>
+                <span class="value text-success" data-drawer-stat="online">0</span>
+            </div>
+            <div class="metro-drawer-kpi">
+                <span class="label">Offline</span>
+                <span class="value text-danger" data-drawer-stat="offline">0</span>
+            </div>
+            <div class="metro-drawer-kpi">
+                <span class="label">Availability</span>
+                <span class="value" data-drawer-stat="availability">0%</span>
+            </div>
+        </div>
+
+        <div class="metro-drawer-toolbar">
+            <div class="filter-search metro-drawer-search">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="search" id="drawer-scanner-search" placeholder="Search device ID, store, status…" autocomplete="off">
+            </div>
+            <p class="metro-drawer-count"><span id="drawer-list-count">0</span> scanners</p>
+        </div>
+
+        <div class="metro-drawer-list-header">
+            <span>Device ID</span>
+            <span>Store</span>
+            <span>Version</span>
+            <span>Status</span>
+        </div>
+        <div id="metro-drawer-list" class="metro-drawer-list" role="list"></div>
+    </aside>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
