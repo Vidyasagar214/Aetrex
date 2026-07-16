@@ -1495,21 +1495,109 @@
         }
       });
 
+      function focusSearchResults(query) {
+        const q = query.trim().toLowerCase();
+        const viewCount = document.getElementById('scanners-in-view');
+
+        if (!q) {
+          markers.forEach((marker) => {
+            marker.setStyle({ opacity: 0.95, fillOpacity: 0.55 });
+          });
+          if (viewCount) {
+            const total = metros.reduce((sum, m) => sum + m.scanners, 0);
+            viewCount.textContent = total.toLocaleString('en-US');
+          }
+          fitMap(map, markers, { mode: 'explorer' });
+          return;
+        }
+
+        const filtered = metros.filter(
+          (m) =>
+            m.metro.toLowerCase().includes(q) ||
+            m.city.toLowerCase().includes(q) ||
+            m.state.toLowerCase().includes(q) ||
+            m.country.toLowerCase().includes(q)
+        );
+
+        const total = filtered.reduce((sum, m) => sum + m.scanners, 0);
+        if (viewCount) viewCount.textContent = total.toLocaleString('en-US');
+
+        const filteredKeys = new Set(filtered.map((m) => m.metroKey));
+        markers.forEach((marker) => {
+          const isMatch = filteredKeys.has(marker._metroData.metroKey);
+          marker.setStyle({
+            opacity: isMatch ? 0.95 : 0.2,
+            fillOpacity: isMatch ? 0.65 : 0.12,
+          });
+        });
+
+        if (!filtered.length) return;
+
+        const exactMatches = filtered.filter(
+          (m) =>
+            m.city.toLowerCase() === q ||
+            m.metro.toLowerCase() === q ||
+            m.metro.toLowerCase().startsWith(`${q},`)
+        );
+
+        const target =
+          exactMatches.length === 1
+            ? exactMatches[0]
+            : filtered.length === 1
+              ? filtered[0]
+              : null;
+
+        if (target && Number.isFinite(target.lat) && Number.isFinite(target.lng)) {
+          map.setView([target.lat, target.lng], Math.max(map.getZoom(), 6), { animate: true });
+          return;
+        }
+
+        const matchMarkers = markers.filter((marker) =>
+          filteredKeys.has(marker._metroData.metroKey)
+        );
+        if (matchMarkers.length) {
+          const group = L.featureGroup(matchMarkers);
+          map.fitBounds(group.getBounds().pad(0.2), {
+            maxZoom: filtered.length <= 5 ? 7 : 5,
+            animate: true,
+          });
+        }
+      }
+
       if (searchEl) {
+        let searchTimer = null;
+        const runSearch = () => focusSearchResults(searchEl.value);
+
         searchEl.addEventListener('input', () => {
-          const q = searchEl.value.trim().toLowerCase();
-          const filtered = !q
-            ? metros
-            : metros.filter(
-                (m) =>
-                  m.metro.toLowerCase().includes(q) ||
-                  m.city.toLowerCase().includes(q) ||
-                  m.state.toLowerCase().includes(q) ||
-                  m.country.toLowerCase().includes(q)
-              );
-          const total = filtered.reduce((sum, m) => sum + m.scanners, 0);
-          const viewCount = document.getElementById('scanners-in-view');
-          if (viewCount) viewCount.textContent = total.toLocaleString('en-US');
+          clearTimeout(searchTimer);
+          searchTimer = setTimeout(runSearch, 220);
+        });
+
+        searchEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            clearTimeout(searchTimer);
+            runSearch();
+
+            const q = searchEl.value.trim().toLowerCase();
+            if (!q) return;
+
+            const exact = metros.find(
+              (m) =>
+                m.city.toLowerCase() === q ||
+                m.metro.toLowerCase() === q ||
+                m.metro.toLowerCase().startsWith(`${q},`)
+            );
+            const only = metros.filter(
+              (m) =>
+                m.metro.toLowerCase().includes(q) ||
+                m.city.toLowerCase().includes(q) ||
+                m.state.toLowerCase().includes(q) ||
+                m.country.toLowerCase().includes(q)
+            );
+            const target = exact || (only.length === 1 ? only[0] : null);
+            if (target) selectMetro(target, { zoom: true });
+          }
         });
       }
 
